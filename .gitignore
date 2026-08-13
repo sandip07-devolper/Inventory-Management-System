@@ -1,0 +1,27 @@
+## .NET
+bin/
+obj/
+out/
+*.user
+*.suo
+
+## Rider / VS
+.vs/
+.idea/
+*.DotSettings.user
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+publish/
+
+## Secrets
+appsettings.*.local.json
+*.env
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Logs
+*.log
