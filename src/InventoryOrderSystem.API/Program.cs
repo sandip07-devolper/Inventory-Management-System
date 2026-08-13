@@ -1,4 +1,5 @@
 using System.Text;
+using InventoryOrderSystem.API.Services;
 using InventoryOrderSystem.Domain.Entities;
 using InventoryOrderSystem.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -56,6 +57,7 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // ---- API / Swagger ----
 builder.Services.AddControllers();
