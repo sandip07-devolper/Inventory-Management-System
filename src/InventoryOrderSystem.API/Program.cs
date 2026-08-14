@@ -1,8 +1,10 @@
 using System.Text;
 using InventoryOrderSystem.API.Services;
 using InventoryOrderSystem.API.Services.Categories;
+using InventoryOrderSystem.API.Services.Customers;
 using InventoryOrderSystem.API.Services.Products;
 using InventoryOrderSystem.API.Services.PurchaseOrders;
+using InventoryOrderSystem.API.Services.SalesOrders;
 using InventoryOrderSystem.API.Services.Suppliers;
 using InventoryOrderSystem.Domain.Entities;
 using InventoryOrderSystem.Infrastructure.Data;
@@ -66,6 +68,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
 
 // ---- API / Swagger ----
 builder.Services.AddControllers();

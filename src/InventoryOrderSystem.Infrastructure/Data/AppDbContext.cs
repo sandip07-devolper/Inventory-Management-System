@@ -23,6 +23,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
+    public DbSet<SalesOrderItem> SalesOrderItems => Set<SalesOrderItem>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -81,6 +84,38 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
             b.HasOne(i => i.PurchaseOrder)
                 .WithMany(p => p.Items)
                 .HasForeignKey(i => i.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(i => i.Product)
+                .WithMany()
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Customer>(b =>
+        {
+            b.HasIndex(c => new { c.TenantId, c.Name }).IsUnique();
+        });
+
+        builder.Entity<SalesOrder>(b =>
+        {
+            b.HasIndex(o => new { o.TenantId, o.OrderNumber }).IsUnique();
+            b.Property(o => o.TotalAmount).HasPrecision(18, 2);
+            b.Property(o => o.Status).HasConversion<string>().HasMaxLength(20);
+
+            b.HasOne(o => o.Customer)
+                .WithMany(c => c.SalesOrders)
+                .HasForeignKey(o => o.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<SalesOrderItem>(b =>
+        {
+            b.Property(i => i.UnitPrice).HasPrecision(18, 2);
+
+            b.HasOne(i => i.SalesOrder)
+                .WithMany(o => o.Items)
+                .HasForeignKey(i => i.SalesOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             b.HasOne(i => i.Product)
