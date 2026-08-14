@@ -57,13 +57,23 @@ dotnet run --project src/InventoryOrderSystem.API
 GET /api/health
 ```
 
+### Running tests
+
+```bash
+dotnet test tests/InventoryOrderSystem.Tests
+```
+
+Service-layer tests run against EF Core's InMemory provider with a fixed
+tenant context, so tenant query filters and audit stamping behave the same
+as they would against MySQL - no mocking of the DbContext required.
+
 ## Roadmap
 
 - [x] Solution scaffolding, multi-tenant DbContext, JWT auth pipeline
-- [ ] Tenant registration & authentication endpoints
-- [ ] Product / category / supplier management
-- [ ] Stock tracking & purchase orders
-- [ ] Sales orders & fulfillment workflow
+- [x] Tenant registration & authentication endpoints
+- [x] Product / category / supplier management
+- [x] Stock tracking & purchase orders (Draft -> Received/Cancelled)
+- [x] Sales orders & fulfillment workflow (Draft -> Fulfilled/Cancelled)
+- [x] Unit tests for order state machines and stock validation
 - [ ] Reporting (stock valuation, low-stock alerts)
-- [ ] Unit & integration tests
 - [ ] Frontend (Bootstrap + JS)
