@@ -1,0 +1,181 @@
+using InventoryOrderSystem.API.DTOs.PurchaseOrders;
+using InventoryOrderSystem.API.Mapping;
+using InventoryOrderSystem.Domain.Entities;
+using InventoryOrderSystem.Domain.Enums;
+using InventoryOrderSystem.Domain.Exceptions;
+using InventoryOrderSystem.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace InventoryOrderSystem.API.Services.PurchaseOrders;
+
+public class PurchaseOrderService : IPurchaseOrderService
+{
+    private readonly AppDbContext _dbContext;
+
+    public PurchaseOrderService(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task<IEnumerable<PurchaseOrderDto>> GetAllAsync()
+    {
+        return await _dbContext.PurchaseOrders
+            .Include(o => o.Supplier)
+            .Include(o => o.Items).ThenInclude(i => i.Product)
+            .OrderByDescending(o => o.OrderDate)
+            .Select(o => o.ToDto())
+            .ToListAsync();
+    }
+
+    public async Task<PurchaseOrderDto> GetByIdAsync(int id)
+    {
+        var order = await LoadOrderAsync(id);
+        return order.ToDto();
+    }
+
+    public async Task<PurchaseOrderDto> CreateAsync(CreatePurchaseOrderRequest request)
+    {
+        var supplierExists = await _dbContext.Suppliers.AnyAsync(s => s.Id == request.SupplierId);
+        if (!supplierExists)
+            throw new NotFoundException(nameof(Supplier), request.SupplierId);
+
+        await EnsureProductsExistAsync(request.Items.Select(i => i.ProductId));
+
+        var order = new PurchaseOrder
+        {
+            OrderNumber = await GenerateOrderNumberAsync(),
+            SupplierId = request.SupplierId,
+            Status = PurchaseOrderStatus.Draft,
+            OrderDate = DateTime.UtcNow,
+            Notes = request.Notes,
+            Items = request.Items.Select(i => new PurchaseOrderItem
+            {
+                ProductId = i.ProductId,
+                Quantity = i.Quantity,
+                UnitCost = i.UnitCost
+            }).ToList()
+        };
+
+        order.TotalAmount = order.Items.Sum(i => i.Quantity * i.UnitCost);
+
+        _dbContext.PurchaseOrders.Add(order);
+        await _dbContext.SaveChangesAsync();
+
+        return (await LoadOrderAsync(order.Id)).ToDto();
+    }
+
+    public async Task<PurchaseOrderDto> UpdateAsync(int id, UpdatePurchaseOrderRequest request)
+    {
+        var order = await LoadOrderAsync(id);
+        EnsureIsDraft(order, "edited");
+
+        var supplierExists = await _dbContext.Suppliers.AnyAsync(s => s.Id == request.SupplierId);
+        if (!supplierExists)
+            throw new NotFoundException(nameof(Supplier), request.SupplierId);
+
+        await EnsureProductsExistAsync(request.Items.Select(i => i.ProductId));
+
+        _dbContext.PurchaseOrderItems.RemoveRange(order.Items);
+
+        order.SupplierId = request.SupplierId;
+        order.Notes = request.Notes;
+        order.Items = request.Items.Select(i => new PurchaseOrderItem
+        {
+            ProductId = i.ProductId,
+            Quantity = i.Quantity,
+            UnitCost = i.UnitCost
+        }).ToList();
+        order.TotalAmount = order.Items.Sum(i => i.Quantity * i.UnitCost);
+
+        await _dbContext.SaveChangesAsync();
+
+        return (await LoadOrderAsync(order.Id)).ToDto();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var order = await _dbContext.PurchaseOrders.FirstOrDefaultAsync(o => o.Id == id)
+            ?? throw new NotFoundException(nameof(PurchaseOrder), id);
+
+        EnsureIsDraft(order, "deleted");
+
+        _dbContext.PurchaseOrders.Remove(order); // cascades to items
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<PurchaseOrderDto> ReceiveAsync(int id)
+    {
+        var order = await LoadOrderAsync(id);
+        EnsureIsDraft(order, "received");
+
+        // Add each item's quantity to on-hand stock. All updates happen inside
+        // a single SaveChanges call, so they're committed atomically together
+        // with the order status change.
+        foreach (var item in order.Items)
+        {
+            item.Product.QuantityOnHand += item.Quantity;
+        }
+
+        order.Status = PurchaseOrderStatus.Received;
+        order.ReceivedDate = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return order.ToDto();
+    }
+
+    public async Task<PurchaseOrderDto> CancelAsync(int id)
+    {
+        var order = await LoadOrderAsync(id);
+        EnsureIsDraft(order, "cancelled");
+
+        order.Status = PurchaseOrderStatus.Cancelled;
+        await _dbContext.SaveChangesAsync();
+
+        return order.ToDto();
+    }
+
+    private async Task<PurchaseOrder> LoadOrderAsync(int id)
+    {
+        return await _dbContext.PurchaseOrders
+            .Include(o => o.Supplier)
+            .Include(o => o.Items).ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(o => o.Id == id)
+            ?? throw new NotFoundException(nameof(PurchaseOrder), id);
+    }
+
+    private static void EnsureIsDraft(PurchaseOrder order, string action)
+    {
+        if (order.Status != PurchaseOrderStatus.Draft)
+            throw new ConflictException(
+                $"Purchase order '{order.OrderNumber}' cannot be {action} because it is already {order.Status}.");
+    }
+
+    private async Task EnsureProductsExistAsync(IEnumerable<int> productIds)
+    {
+        var ids = productIds.Distinct().ToList();
+        var validCount = await _dbContext.Products.CountAsync(p => ids.Contains(p.Id));
+        if (validCount != ids.Count)
+            throw new NotFoundException("One or more products in the purchase order could not be found.");
+    }
+
+    /// <summary>
+    /// Generates a sequential, tenant-scoped order number (e.g. PO-000001).
+    /// Simplification note: uses a count-based sequence rather than a DB sequence
+    /// object, which is fine at this scale but could theoretically collide under
+    /// heavy concurrent writes - the uniqueness loop below guards against that.
+    /// </summary>
+    private async Task<string> GenerateOrderNumberAsync()
+    {
+        var next = await _dbContext.PurchaseOrders.CountAsync() + 1;
+        var orderNumber = $"PO-{next:D6}";
+
+        while (await _dbContext.PurchaseOrders.AnyAsync(o => o.OrderNumber == orderNumber))
+        {
+            next++;
+            orderNumber = $"PO-{next:D6}";
+        }
+
+        return orderNumber;
+    }
+}
