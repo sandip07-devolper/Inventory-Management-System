@@ -85,6 +85,19 @@ try
             };
         });
 
+    var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+        ?? Array.Empty<string>();
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("FrontendPolicy", policy =>
+        {
+            policy.WithOrigins(corsOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+
     builder.Services.AddAuthorization();
     builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
     builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -138,6 +151,7 @@ try
     }
 
     app.UseHttpsRedirection();
+    app.UseCors("FrontendPolicy");
     app.UseAuthentication();
 
     // Runs after authentication so the TenantId/UserId claims are available to enrich

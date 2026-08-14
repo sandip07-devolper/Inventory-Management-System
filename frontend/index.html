@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inventory & Order Management</title>
+</head>
+<body>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/api-client.js"></script>
+  <script>
+    window.location.href = AuthStorage.isAuthenticated() ? "dashboard.html" : "login.html";
+  </script>
+</body>
+</html>

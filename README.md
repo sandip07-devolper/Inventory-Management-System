@@ -85,4 +85,9 @@ as they would against MySQL - no mocking of the DbContext required.
 - [x] Sales orders & fulfillment workflow (Draft -> Fulfilled/Cancelled)
 - [x] Unit tests for order state machines and stock validation
 - [x] Reporting (stock valuation, low-stock alerts)
-- [ ] Frontend (Bootstrap + JS)
+- [x] Structured logging (Serilog)
+- [x] Pagination/filtering on high-volume endpoints
+- [ ] Frontend: auth + dashboard done, CRUD pages for Products/Orders next
+
+See [`frontend/README.md`](frontend/README.md) for how to run the frontend
+against this API.
