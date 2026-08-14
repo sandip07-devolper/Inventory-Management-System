@@ -6,16 +6,19 @@ using InventoryOrderSystem.Domain.Enums;
 using InventoryOrderSystem.Domain.Exceptions;
 using InventoryOrderSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryOrderSystem.API.Services.PurchaseOrders;
 
 public class PurchaseOrderService : IPurchaseOrderService
 {
     private readonly AppDbContext _dbContext;
+    private readonly ILogger<PurchaseOrderService> _logger;
 
-    public PurchaseOrderService(AppDbContext dbContext)
+    public PurchaseOrderService(AppDbContext dbContext, ILogger<PurchaseOrderService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<PagedResult<PurchaseOrderDto>> GetAllAsync(PurchaseOrderQuery query)
@@ -83,6 +86,10 @@ public class PurchaseOrderService : IPurchaseOrderService
         _dbContext.PurchaseOrders.Add(order);
         await _dbContext.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Purchase order {OrderNumber} created for supplier {SupplierId} with {ItemCount} line items, total {TotalAmount:C}",
+            order.OrderNumber, order.SupplierId, order.Items.Count, order.TotalAmount);
+
         return (await LoadOrderAsync(order.Id)).ToDto();
     }
 
@@ -143,6 +150,12 @@ public class PurchaseOrderService : IPurchaseOrderService
 
         await _dbContext.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Purchase order {OrderNumber} received: stock increased for {ItemCount} products - {Items}",
+            order.OrderNumber,
+            order.Items.Count,
+            string.Join(", ", order.Items.Select(i => $"{i.Product.Sku}:+{i.Quantity}")));
+
         return order.ToDto();
     }
 
@@ -153,6 +166,8 @@ public class PurchaseOrderService : IPurchaseOrderService
 
         order.Status = PurchaseOrderStatus.Cancelled;
         await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Purchase order {OrderNumber} cancelled", order.OrderNumber);
 
         return order.ToDto();
     }

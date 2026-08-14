@@ -6,16 +6,19 @@ using InventoryOrderSystem.Domain.Enums;
 using InventoryOrderSystem.Domain.Exceptions;
 using InventoryOrderSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace InventoryOrderSystem.API.Services.SalesOrders;
 
 public class SalesOrderService : ISalesOrderService
 {
     private readonly AppDbContext _dbContext;
+    private readonly ILogger<SalesOrderService> _logger;
 
-    public SalesOrderService(AppDbContext dbContext)
+    public SalesOrderService(AppDbContext dbContext, ILogger<SalesOrderService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<PagedResult<SalesOrderDto>> GetAllAsync(SalesOrderQuery query)
@@ -83,6 +86,10 @@ public class SalesOrderService : ISalesOrderService
         _dbContext.SalesOrders.Add(order);
         await _dbContext.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Sales order {OrderNumber} created for customer {CustomerId} with {ItemCount} line items, total {TotalAmount:C}",
+            order.OrderNumber, order.CustomerId, order.Items.Count, order.TotalAmount);
+
         return (await LoadOrderAsync(order.Id)).ToDto();
     }
 
@@ -136,8 +143,14 @@ public class SalesOrderService : ISalesOrderService
             .ToList();
 
         if (shortages.Count > 0)
+        {
+            _logger.LogWarning(
+                "Sales order {OrderNumber} fulfillment REJECTED due to insufficient stock: {Shortages}",
+                order.OrderNumber, string.Join("; ", shortages));
+
             throw new ConflictException(
                 $"Cannot fulfill order '{order.OrderNumber}' due to insufficient stock - {string.Join("; ", shortages)}");
+        }
 
         // All stock deductions and the status change commit together in a single
         // SaveChanges call, so a partial fulfillment can never be persisted.
@@ -151,6 +164,12 @@ public class SalesOrderService : ISalesOrderService
 
         await _dbContext.SaveChangesAsync();
 
+        _logger.LogInformation(
+            "Sales order {OrderNumber} fulfilled: stock deducted for {ItemCount} products - {Items}",
+            order.OrderNumber,
+            order.Items.Count,
+            string.Join(", ", order.Items.Select(i => $"{i.Product.Sku}:-{i.Quantity}")));
+
         return order.ToDto();
     }
 
@@ -161,6 +180,8 @@ public class SalesOrderService : ISalesOrderService
 
         order.Status = SalesOrderStatus.Cancelled;
         await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Sales order {OrderNumber} cancelled", order.OrderNumber);
 
         return order.ToDto();
     }

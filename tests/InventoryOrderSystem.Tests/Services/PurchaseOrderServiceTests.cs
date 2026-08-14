@@ -4,6 +4,7 @@ using InventoryOrderSystem.Domain.Entities;
 using InventoryOrderSystem.Domain.Exceptions;
 using InventoryOrderSystem.Infrastructure.Data;
 using InventoryOrderSystem.Tests.TestHelpers;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace InventoryOrderSystem.Tests.Services;
@@ -41,7 +42,7 @@ public class PurchaseOrderServiceTests
     public async Task CreateAsync_WithValidRequest_CreatesDraftOrderWithCorrectTotal()
     {
         var (db, supplier, product) = await SeedAsync();
-        var service = new PurchaseOrderService(db);
+        var service = new PurchaseOrderService(db, NullLogger<PurchaseOrderService>.Instance);
 
         var result = await service.CreateAsync(new CreatePurchaseOrderRequest
         {
@@ -61,7 +62,7 @@ public class PurchaseOrderServiceTests
     public async Task CreateAsync_WithNonExistentSupplier_ThrowsNotFoundException()
     {
         var (db, _, product) = await SeedAsync();
-        var service = new PurchaseOrderService(db);
+        var service = new PurchaseOrderService(db, NullLogger<PurchaseOrderService>.Instance);
 
         var request = new CreatePurchaseOrderRequest
         {
@@ -79,7 +80,7 @@ public class PurchaseOrderServiceTests
     public async Task ReceiveAsync_WhenDraft_IncreasesProductStockAndMarksReceived()
     {
         var (db, supplier, product) = await SeedAsync();
-        var service = new PurchaseOrderService(db);
+        var service = new PurchaseOrderService(db, NullLogger<PurchaseOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreatePurchaseOrderRequest
         {
@@ -103,7 +104,7 @@ public class PurchaseOrderServiceTests
     public async Task ReceiveAsync_WhenAlreadyReceived_ThrowsConflictException()
     {
         var (db, supplier, product) = await SeedAsync();
-        var service = new PurchaseOrderService(db);
+        var service = new PurchaseOrderService(db, NullLogger<PurchaseOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreatePurchaseOrderRequest
         {
@@ -123,7 +124,7 @@ public class PurchaseOrderServiceTests
     public async Task CancelAsync_WhenDraft_MarksCancelled()
     {
         var (db, supplier, product) = await SeedAsync();
-        var service = new PurchaseOrderService(db);
+        var service = new PurchaseOrderService(db, NullLogger<PurchaseOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreatePurchaseOrderRequest
         {
@@ -143,7 +144,7 @@ public class PurchaseOrderServiceTests
     public async Task DeleteAsync_WhenReceived_ThrowsConflictException()
     {
         var (db, supplier, product) = await SeedAsync();
-        var service = new PurchaseOrderService(db);
+        var service = new PurchaseOrderService(db, NullLogger<PurchaseOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreatePurchaseOrderRequest
         {

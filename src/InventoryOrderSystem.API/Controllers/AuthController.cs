@@ -21,17 +21,20 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole<int>> _roleManager;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         AppDbContext dbContext,
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole<int>> roleManager,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        ILogger<AuthController> logger)
     {
         _dbContext = dbContext;
         _userManager = userManager;
         _roleManager = roleManager;
         _jwtTokenService = jwtTokenService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -50,7 +53,10 @@ public class AuthController : ControllerBase
             .AnyAsync(u => u.NormalizedEmail == normalizedEmail);
 
         if (emailExists)
+        {
+            _logger.LogWarning("Registration rejected: email already in use");
             return Conflict(new { message = "An account with this email already exists." });
+        }
 
         var slug = await GenerateUniqueSlugAsync(request.CompanyName);
 
@@ -83,6 +89,10 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         var (token, expiresAtUtc) = _jwtTokenService.GenerateToken(user, roles);
 
+        _logger.LogInformation(
+            "New tenant registered: {TenantName} (Id {TenantId}, slug {Slug}), admin user {UserId}",
+            tenant.Name, tenant.Id, tenant.Slug, user.Id);
+
         return Ok(new AuthResponse
         {
             Token = token,
@@ -110,14 +120,22 @@ public class AuthController : ControllerBase
             .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
 
         if (user is null || !user.IsActive || !await _userManager.CheckPasswordAsync(user, request.Password))
+        {
+            _logger.LogWarning("Login failed for email {Email}", request.Email);
             return Unauthorized(new { message = "Invalid email or password." });
+        }
 
         var tenant = await _dbContext.Tenants.FirstOrDefaultAsync(t => t.Id == user.TenantId);
         if (tenant is null || !tenant.IsActive)
+        {
+            _logger.LogWarning("Login rejected for user {UserId}: tenant inactive", user.Id);
             return Unauthorized(new { message = "This account's organization is inactive." });
+        }
 
         var roles = await _userManager.GetRolesAsync(user);
         var (token, expiresAtUtc) = _jwtTokenService.GenerateToken(user, roles);
+
+        _logger.LogInformation("User {UserId} logged in for tenant {TenantId}", user.Id, tenant.Id);
 
         return Ok(new AuthResponse
         {

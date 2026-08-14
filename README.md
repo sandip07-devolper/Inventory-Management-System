@@ -57,6 +57,15 @@ dotnet run --project src/InventoryOrderSystem.API
 GET /api/health
 ```
 
+### Logging
+
+Structured logging via Serilog: console + rolling daily file (`logs/log-.txt`,
+14-day retention). Every request is enriched with `TenantId`/`UserId` from the
+JWT claims once authenticated, so log lines can be filtered per tenant without
+services having to pass that context around manually. Key business events
+(order created, received/fulfilled, cancelled, insufficient-stock rejections,
+auth register/login) are logged explicitly at the service layer.
+
 ### Running tests
 
 ```bash

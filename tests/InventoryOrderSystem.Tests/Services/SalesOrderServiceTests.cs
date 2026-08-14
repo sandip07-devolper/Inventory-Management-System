@@ -4,6 +4,7 @@ using InventoryOrderSystem.Domain.Entities;
 using InventoryOrderSystem.Domain.Exceptions;
 using InventoryOrderSystem.Infrastructure.Data;
 using InventoryOrderSystem.Tests.TestHelpers;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace InventoryOrderSystem.Tests.Services;
@@ -41,7 +42,7 @@ public class SalesOrderServiceTests
     public async Task FulfillAsync_WithSufficientStock_DeductsStockAndMarksFulfilled()
     {
         var (db, customer, product) = await SeedAsync(initialStock: 15);
-        var service = new SalesOrderService(db);
+        var service = new SalesOrderService(db, NullLogger<SalesOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreateSalesOrderRequest
         {
@@ -65,7 +66,7 @@ public class SalesOrderServiceTests
     public async Task FulfillAsync_WithInsufficientStock_ThrowsConflictAndLeavesStockUnchanged()
     {
         var (db, customer, product) = await SeedAsync(initialStock: 3);
-        var service = new SalesOrderService(db);
+        var service = new SalesOrderService(db, NullLogger<SalesOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreateSalesOrderRequest
         {
@@ -86,7 +87,7 @@ public class SalesOrderServiceTests
     public async Task CreateAsync_WithNonExistentProduct_ThrowsNotFoundException()
     {
         var (db, customer, _) = await SeedAsync();
-        var service = new SalesOrderService(db);
+        var service = new SalesOrderService(db, NullLogger<SalesOrderService>.Instance);
 
         var request = new CreateSalesOrderRequest
         {
@@ -104,7 +105,7 @@ public class SalesOrderServiceTests
     public async Task CancelAsync_WhenDraft_MarksCancelled()
     {
         var (db, customer, product) = await SeedAsync(initialStock: 5);
-        var service = new SalesOrderService(db);
+        var service = new SalesOrderService(db, NullLogger<SalesOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreateSalesOrderRequest
         {
@@ -124,7 +125,7 @@ public class SalesOrderServiceTests
     public async Task FulfillAsync_WhenAlreadyCancelled_ThrowsConflictException()
     {
         var (db, customer, product) = await SeedAsync(initialStock: 5);
-        var service = new SalesOrderService(db);
+        var service = new SalesOrderService(db, NullLogger<SalesOrderService>.Instance);
 
         var created = await service.CreateAsync(new CreateSalesOrderRequest
         {
