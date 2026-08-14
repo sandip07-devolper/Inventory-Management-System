@@ -18,6 +18,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
     }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Product> Products => Set<Product>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -33,6 +35,23 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>
                 .OnDelete(DeleteBehavior.Restrict);
 
             b.HasQueryFilter(u => u.TenantId == _tenantProvider.GetTenantId());
+        });
+
+        builder.Entity<Category>(b =>
+        {
+            b.HasIndex(c => new { c.TenantId, c.Name }).IsUnique();
+        });
+
+        builder.Entity<Product>(b =>
+        {
+            b.HasIndex(p => new { p.TenantId, p.Sku }).IsUnique();
+            b.Property(p => p.UnitPrice).HasPrecision(18, 2);
+            b.Property(p => p.CostPrice).HasPrecision(18, 2);
+
+            b.HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         ApplyTenantQueryFilters(builder);

@@ -1,5 +1,7 @@
 using System.Text;
 using InventoryOrderSystem.API.Services;
+using InventoryOrderSystem.API.Services.Categories;
+using InventoryOrderSystem.API.Services.Products;
 using InventoryOrderSystem.Domain.Entities;
 using InventoryOrderSystem.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,6 +60,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // ---- API / Swagger ----
 builder.Services.AddControllers();
@@ -89,6 +93,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<InventoryOrderSystem.API.Middleware.ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
