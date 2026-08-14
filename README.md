@@ -75,5 +75,5 @@ as they would against MySQL - no mocking of the DbContext required.
 - [x] Stock tracking & purchase orders (Draft -> Received/Cancelled)
 - [x] Sales orders & fulfillment workflow (Draft -> Fulfilled/Cancelled)
 - [x] Unit tests for order state machines and stock validation
-- [ ] Reporting (stock valuation, low-stock alerts)
+- [x] Reporting (stock valuation, low-stock alerts)
 - [ ] Frontend (Bootstrap + JS)
