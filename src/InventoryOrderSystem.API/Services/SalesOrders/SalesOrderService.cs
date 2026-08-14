@@ -1,3 +1,4 @@
+using InventoryOrderSystem.API.DTOs.Common;
 using InventoryOrderSystem.API.DTOs.SalesOrders;
 using InventoryOrderSystem.API.Mapping;
 using InventoryOrderSystem.Domain.Entities;
@@ -17,14 +18,35 @@ public class SalesOrderService : ISalesOrderService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<SalesOrderDto>> GetAllAsync()
+    public async Task<PagedResult<SalesOrderDto>> GetAllAsync(SalesOrderQuery query)
     {
-        return await _dbContext.SalesOrders
+        IQueryable<SalesOrder> orders = _dbContext.SalesOrders
             .Include(o => o.Customer)
             .Include(o => o.Items).ThenInclude(i => i.Product)
+            .AsSplitQuery(); // avoids row duplication from the Items join while paging
+
+        if (!string.IsNullOrWhiteSpace(query.Status) &&
+            Enum.TryParse<SalesOrderStatus>(query.Status, ignoreCase: true, out var status))
+        {
+            orders = orders.Where(o => o.Status == status);
+        }
+
+        var totalCount = await orders.CountAsync();
+
+        var items = await orders
             .OrderByDescending(o => o.OrderDate)
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .Select(o => o.ToDto())
             .ToListAsync();
+
+        return new PagedResult<SalesOrderDto>
+        {
+            Items = items,
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<SalesOrderDto> GetByIdAsync(int id)

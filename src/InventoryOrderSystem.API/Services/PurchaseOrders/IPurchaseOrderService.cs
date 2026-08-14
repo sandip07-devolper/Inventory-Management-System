@@ -1,10 +1,11 @@
+using InventoryOrderSystem.API.DTOs.Common;
 using InventoryOrderSystem.API.DTOs.PurchaseOrders;
 
 namespace InventoryOrderSystem.API.Services.PurchaseOrders;
 
 public interface IPurchaseOrderService
 {
-    Task<IEnumerable<PurchaseOrderDto>> GetAllAsync();
+    Task<PagedResult<PurchaseOrderDto>> GetAllAsync(PurchaseOrderQuery query);
     Task<PurchaseOrderDto> GetByIdAsync(int id);
     Task<PurchaseOrderDto> CreateAsync(CreatePurchaseOrderRequest request);
     Task<PurchaseOrderDto> UpdateAsync(int id, UpdatePurchaseOrderRequest request);

@@ -1,3 +1,4 @@
+using InventoryOrderSystem.API.DTOs.Common;
 using InventoryOrderSystem.API.DTOs.Products;
 using InventoryOrderSystem.API.Services.Products;
 using Microsoft.AspNetCore.Authorization;
@@ -18,8 +19,8 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
-        => Ok(await _productService.GetAllAsync());
+    public async Task<ActionResult<PagedResult<ProductDto>>> GetAll([FromQuery] ProductQuery query)
+        => Ok(await _productService.GetAllAsync(query));
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)

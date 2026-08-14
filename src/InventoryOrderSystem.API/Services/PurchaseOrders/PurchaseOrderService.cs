@@ -1,3 +1,4 @@
+using InventoryOrderSystem.API.DTOs.Common;
 using InventoryOrderSystem.API.DTOs.PurchaseOrders;
 using InventoryOrderSystem.API.Mapping;
 using InventoryOrderSystem.Domain.Entities;
@@ -17,14 +18,35 @@ public class PurchaseOrderService : IPurchaseOrderService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<PurchaseOrderDto>> GetAllAsync()
+    public async Task<PagedResult<PurchaseOrderDto>> GetAllAsync(PurchaseOrderQuery query)
     {
-        return await _dbContext.PurchaseOrders
+        IQueryable<PurchaseOrder> orders = _dbContext.PurchaseOrders
             .Include(o => o.Supplier)
             .Include(o => o.Items).ThenInclude(i => i.Product)
+            .AsSplitQuery(); // avoids row duplication from the Items join while paging
+
+        if (!string.IsNullOrWhiteSpace(query.Status) &&
+            Enum.TryParse<PurchaseOrderStatus>(query.Status, ignoreCase: true, out var status))
+        {
+            orders = orders.Where(o => o.Status == status);
+        }
+
+        var totalCount = await orders.CountAsync();
+
+        var items = await orders
             .OrderByDescending(o => o.OrderDate)
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .Select(o => o.ToDto())
             .ToListAsync();
+
+        return new PagedResult<PurchaseOrderDto>
+        {
+            Items = items,
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<PurchaseOrderDto> GetByIdAsync(int id)

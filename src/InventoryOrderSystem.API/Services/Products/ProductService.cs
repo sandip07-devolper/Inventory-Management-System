@@ -1,3 +1,4 @@
+using InventoryOrderSystem.API.DTOs.Common;
 using InventoryOrderSystem.API.DTOs.Products;
 using InventoryOrderSystem.API.Mapping;
 using InventoryOrderSystem.Domain.Entities;
@@ -16,13 +17,38 @@ public class ProductService : IProductService
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<ProductDto>> GetAllAsync()
+    public async Task<PagedResult<ProductDto>> GetAllAsync(ProductQuery query)
     {
-        return await _dbContext.Products
-            .Include(p => p.Category)
+        var products = _dbContext.Products.Include(p => p.Category).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = query.Search.Trim();
+            products = products.Where(p => p.Name.Contains(term) || p.Sku.Contains(term));
+        }
+
+        if (query.CategoryId.HasValue)
+            products = products.Where(p => p.CategoryId == query.CategoryId.Value);
+
+        if (query.IsActive.HasValue)
+            products = products.Where(p => p.IsActive == query.IsActive.Value);
+
+        var totalCount = await products.CountAsync();
+
+        var items = await products
             .OrderBy(p => p.Name)
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
             .Select(p => p.ToDto())
             .ToListAsync();
+
+        return new PagedResult<ProductDto>
+        {
+            Items = items,
+            PageNumber = query.PageNumber,
+            PageSize = query.PageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task<ProductDto> GetByIdAsync(int id)
