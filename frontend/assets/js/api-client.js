@@ -80,7 +80,13 @@ const Api = {
   getLowStockReport: () => apiRequest("/reports/low-stock"),
   getInventoryValuation: () => apiRequest("/reports/inventory-valuation"),
 
+  getCategories: () => apiRequest("/categories"),
+
   getProducts: (query = "") => apiRequest(`/products${query}`),
+  createProduct: (payload) => apiRequest("/products", { method: "POST", body: payload }),
+  updateProduct: (id, payload) => apiRequest(`/products/${id}`, { method: "PUT", body: payload }),
+  deleteProduct: (id) => apiRequest(`/products/${id}`, { method: "DELETE" }),
+
   getPurchaseOrders: (query = "") => apiRequest(`/purchase-orders${query}`),
   getSalesOrders: (query = "") => apiRequest(`/sales-orders${query}`)
 };

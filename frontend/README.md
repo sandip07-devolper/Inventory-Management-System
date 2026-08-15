@@ -9,6 +9,8 @@ browser tab closes.
 - `login.html` / `register.html` - authentication
 - `dashboard.html` - KPI cards (low-stock count, units on hand, inventory
   cost/retail value) and a low-stock table, both from `/api/reports/*`
+- `products.html` - searchable/filterable/paginated product list with a
+  create/edit modal; deactivate (soft-delete) with a confirm prompt
 
 ## Running it
 
@@ -39,7 +41,11 @@ Then open `http://localhost:5500`.
 - `assets/js/api-client.js` is the single place that knows about the API base
   URL, attaches the bearer token, and normalizes error messages from the
   API's `problem+json` responses. Every page-specific script (`auth.js`,
-  `dashboard.js`) goes through it rather than calling `fetch` directly.
+  `dashboard.js`, `products.js`) goes through it rather than calling `fetch`
+  directly.
+- `assets/js/nav.js` renders the shared navbar into a `#navbarContainer`
+  placeholder on each authenticated page, so adding a new page means adding
+  one entry to `NAV_LINKS` rather than editing markup in every HTML file.
 - No frontend framework/build step by design - this stays a thin client over
   a documented REST API, which is also exactly what the Swagger UI already
   demonstrates for API-only testing.

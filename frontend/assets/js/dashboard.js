@@ -4,20 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const user = AuthStorage.getUser();
-  const greeting = document.getElementById("userGreeting");
-  if (greeting && user) {
-    greeting.textContent = `${user.fullName} · ${user.tenantName}`;
-  }
-
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      AuthStorage.clear();
-      window.location.href = "login.html";
-    });
-  }
-
+  renderNavbar("dashboard");
   await loadDashboardData();
 });
 
