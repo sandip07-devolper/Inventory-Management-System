@@ -11,6 +11,8 @@ browser tab closes.
   cost/retail value) and a low-stock table, both from `/api/reports/*`
 - `products.html` - searchable/filterable/paginated product list with a
   create/edit modal; deactivate (soft-delete) with a confirm prompt
+- `categories.html` - simple list with a create/edit modal (small
+  reference table, no pagination needed)
 
 ## Running it
 

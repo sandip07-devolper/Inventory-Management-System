@@ -1,6 +1,7 @@
 const NAV_LINKS = [
   { href: "dashboard.html", label: "Dashboard", key: "dashboard" },
-  { href: "products.html", label: "Products", key: "products" }
+  { href: "products.html", label: "Products", key: "products" },
+  { href: "categories.html", label: "Categories", key: "categories" }
 ];
 
 function renderNavbar(activePage) {

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Categories · Inventory & Order Management</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link href="assets/css/app.css" rel="stylesheet" />
+</head>
+<body>
+  <div id="navbarContainer"></div>
+
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="h4 mb-0">Categories</h1>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#categoryModal" id="addCategoryBtn">
+        + Add Category
+      </button>
+    </div>
+
+    <div id="categoriesError" class="alert alert-danger d-none" role="alert"></div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th class="text-end"># Products</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="categoriesTableBody">
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">Loading…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create / Edit modal -->
+  <div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="categoryForm" novalidate>
+          <div class="modal-header">
+            <h5 class="modal-title" id="categoryModalTitle">Add Category</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="categoryFormError" class="alert alert-danger d-none" role="alert"></div>
+
+            <input type="hidden" id="categoryId" />
+
+            <div class="mb-3">
+              <label for="categoryName" class="form-label">Name</label>
+              <input type="text" class="form-control" id="categoryName" required maxlength="100" />
+            </div>
+            <div class="mb-3">
+              <label for="categoryDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="categoryDescription" rows="2" maxlength="500"></textarea>
+            </div>
+            <div class="form-check" id="categoryIsActiveContainer" style="display: none">
+              <input type="checkbox" class="form-check-input" id="categoryIsActive" checked />
+              <label class="form-check-label" for="categoryIsActive">Active</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/api-client.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/categories.js"></script>
+</body>
+</html>

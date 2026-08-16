@@ -81,6 +81,9 @@ const Api = {
   getInventoryValuation: () => apiRequest("/reports/inventory-valuation"),
 
   getCategories: () => apiRequest("/categories"),
+  createCategory: (payload) => apiRequest("/categories", { method: "POST", body: payload }),
+  updateCategory: (id, payload) => apiRequest(`/categories/${id}`, { method: "PUT", body: payload }),
+  deleteCategory: (id) => apiRequest(`/categories/${id}`, { method: "DELETE" }),
 
   getProducts: (query = "") => apiRequest(`/products${query}`),
   createProduct: (payload) => apiRequest("/products", { method: "POST", body: payload }),
