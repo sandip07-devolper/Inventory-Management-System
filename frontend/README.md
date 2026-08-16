@@ -18,6 +18,11 @@ browser tab closes.
   form with dynamic add/remove line-item rows (selecting a product
   pre-fills its cost, editable); a view modal showing full order detail
   plus Receive/Cancel/Delete actions when the order is still Draft
+- `customers.html` - same pattern as suppliers, for customer records
+- `sales-orders.html` - mirrors purchase-orders.html, but Fulfill instead
+  of Receive. Fulfilling reduces stock and will fail (with the API's
+  exact shortage message) if there isn't enough on hand - that response
+  is surfaced in the view modal as-is
 
 ## Running it
 
@@ -55,7 +60,8 @@ Then open `http://localhost:5500`.
   one entry to `NAV_LINKS` rather than editing markup in every HTML file.
 - `assets/js/pagination.js` renders numbered pagination controls and the
   "Showing X-Y of Z" summary text from any `PagedResult` response - shared
-  by `products.js` and `purchase-orders.js` rather than duplicated.
+  by `products.js`, `purchase-orders.js`, and `sales-orders.js` rather
+  than duplicated.
 - No frontend framework/build step by design - this stays a thin client over
   a documented REST API, which is also exactly what the Swagger UI already
   demonstrates for API-only testing.

@@ -87,7 +87,8 @@ as they would against MySQL - no mocking of the DbContext required.
 - [x] Reporting (stock valuation, low-stock alerts)
 - [x] Structured logging (Serilog)
 - [x] Pagination/filtering on high-volume endpoints
-- [ ] Frontend: auth + dashboard + Products/Categories/Suppliers/Purchase Orders done, Sales Orders next
+- [x] Frontend: auth, dashboard, and full CRUD for Categories, Products,
+      Suppliers, Purchase Orders, Customers, Sales Orders
 
 See [`frontend/README.md`](frontend/README.md) for how to run the frontend
 against this API.

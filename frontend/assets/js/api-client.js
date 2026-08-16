@@ -102,5 +102,15 @@ const Api = {
   updateSupplier: (id, payload) => apiRequest(`/suppliers/${id}`, { method: "PUT", body: payload }),
   deleteSupplier: (id) => apiRequest(`/suppliers/${id}`, { method: "DELETE" }),
 
-  getSalesOrders: (query = "") => apiRequest(`/sales-orders${query}`)
+  getSalesOrders: (query = "") => apiRequest(`/sales-orders${query}`),
+  getSalesOrder: (id) => apiRequest(`/sales-orders/${id}`),
+  createSalesOrder: (payload) => apiRequest("/sales-orders", { method: "POST", body: payload }),
+  fulfillSalesOrder: (id) => apiRequest(`/sales-orders/${id}/fulfill`, { method: "POST" }),
+  cancelSalesOrder: (id) => apiRequest(`/sales-orders/${id}/cancel`, { method: "POST" }),
+  deleteSalesOrder: (id) => apiRequest(`/sales-orders/${id}`, { method: "DELETE" }),
+
+  getCustomers: () => apiRequest("/customers"),
+  createCustomer: (payload) => apiRequest("/customers", { method: "POST", body: payload }),
+  updateCustomer: (id, payload) => apiRequest(`/customers/${id}`, { method: "PUT", body: payload }),
+  deleteCustomer: (id) => apiRequest(`/customers/${id}`, { method: "DELETE" })
 };
