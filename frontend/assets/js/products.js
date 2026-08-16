@@ -145,8 +145,11 @@ async function loadProducts() {
   try {
     const result = await Api.getProducts(`?${params.toString()}`);
     renderProductsTable(result.items);
-    renderPagination(result);
-    renderResultsSummary(result);
+    renderPaginationControls("pagination", result, (page) => {
+      state.pageNumber = page;
+      loadProducts();
+    });
+    renderResultsSummaryText("resultsSummary", result);
   } catch (err) {
     showListError(`Couldn't load products: ${err.message}`);
     tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Failed to load.</td></tr>`;
@@ -184,49 +187,6 @@ function renderProductsTable(items) {
       </tr>`
     )
     .join("");
-}
-
-function renderPagination(result) {
-  const pagination = document.getElementById("pagination");
-  pagination.innerHTML = "";
-
-  if (result.totalPages <= 1) return;
-
-  const addPageItem = (label, page, disabled, active) => {
-    const li = document.createElement("li");
-    li.className = `page-item ${disabled ? "disabled" : ""} ${active ? "active" : ""}`;
-    const a = document.createElement("a");
-    a.className = "page-link";
-    a.href = "#";
-    a.textContent = label;
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      if (disabled || active) return;
-      state.pageNumber = page;
-      loadProducts();
-    });
-    li.appendChild(a);
-    pagination.appendChild(li);
-  };
-
-  addPageItem("«", result.pageNumber - 1, result.pageNumber === 1, false);
-
-  for (let page = 1; page <= result.totalPages; page++) {
-    addPageItem(String(page), page, false, page === result.pageNumber);
-  }
-
-  addPageItem("»", result.pageNumber + 1, result.pageNumber === result.totalPages, false);
-}
-
-function renderResultsSummary(result) {
-  const summary = document.getElementById("resultsSummary");
-  if (result.totalCount === 0) {
-    summary.textContent = "No results";
-    return;
-  }
-  const start = (result.pageNumber - 1) * result.pageSize + 1;
-  const end = Math.min(result.pageNumber * result.pageSize, result.totalCount);
-  summary.textContent = `Showing ${start}–${end} of ${result.totalCount}`;
 }
 
 async function openEditModal(id) {

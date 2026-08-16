@@ -13,6 +13,11 @@ browser tab closes.
   create/edit modal; deactivate (soft-delete) with a confirm prompt
 - `categories.html` - simple list with a create/edit modal (small
   reference table, no pagination needed)
+- `suppliers.html` - same pattern as categories, for supplier records
+- `purchase-orders.html` - status-filtered, paginated order list; a create
+  form with dynamic add/remove line-item rows (selecting a product
+  pre-fills its cost, editable); a view modal showing full order detail
+  plus Receive/Cancel/Delete actions when the order is still Draft
 
 ## Running it
 
@@ -48,6 +53,9 @@ Then open `http://localhost:5500`.
 - `assets/js/nav.js` renders the shared navbar into a `#navbarContainer`
   placeholder on each authenticated page, so adding a new page means adding
   one entry to `NAV_LINKS` rather than editing markup in every HTML file.
+- `assets/js/pagination.js` renders numbered pagination controls and the
+  "Showing X-Y of Z" summary text from any `PagedResult` response - shared
+  by `products.js` and `purchase-orders.js` rather than duplicated.
 - No frontend framework/build step by design - this stays a thin client over
   a documented REST API, which is also exactly what the Swagger UI already
   demonstrates for API-only testing.
