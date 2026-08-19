@@ -43,7 +43,17 @@ This means feature code (controllers/services) never has to remember to filter b
 1. Create a MySQL database and update `ConnectionStrings:DefaultConnection` in
    `src/InventoryOrderSystem.API/appsettings.json` (or use `dotnet user-secrets`).
 2. Set a real `Jwt:Key` (32+ char random secret) in the same file / user-secrets.
-3. Restore and run:
+3. **Generate the initial migration** (one-time, only needed once - not yet
+   committed to this repo):
+
+```bash
+dotnet tool install --global dotnet-ef   # if you don't already have it
+dotnet ef migrations add InitialCreate \
+  --project src/InventoryOrderSystem.Infrastructure \
+  --startup-project src/InventoryOrderSystem.API
+```
+
+4. Restore, apply the migration, and run:
 
 ```bash
 dotnet restore
@@ -51,7 +61,26 @@ dotnet ef database update --project src/InventoryOrderSystem.Infrastructure --st
 dotnet run --project src/InventoryOrderSystem.API
 ```
 
-4. Open `https://localhost:7080/swagger` to explore the API.
+5. Open `https://localhost:7080/swagger` to explore the API.
+
+### Running with Docker
+
+```bash
+cp .env.example .env   # then edit JWT_KEY / MYSQL_ROOT_PASSWORD if you like
+docker-compose up --build
+```
+
+This starts MySQL and the API together. The API applies any pending EF Core
+migrations automatically on startup (`Database.Migrate()` in `Program.cs`) -
+**but this only works once the `InitialCreate` migration above has been
+generated and committed**, since Docker can't generate migrations, only apply
+ones that already exist in the image. Once that's done, `docker-compose up`
+is genuinely one command for anyone cloning the repo.
+
+The API is available at `http://localhost:8080` (Swagger at
+`http://localhost:8080/swagger` since the container doesn't use HTTPS by
+default). MySQL is exposed on the usual `3306` if you want to connect with a
+GUI client.
 
 ### Health check
 
@@ -91,8 +120,8 @@ as they would against MySQL - no mocking of the DbContext required.
 - [x] Pagination/filtering on high-volume endpoints
 - [x] Frontend: auth, dashboard, and full CRUD for Categories, Products,
       Suppliers, Purchase Orders, Customers, Sales Orders
+- [x] CI (GitHub Actions: build + test on every push)
+- [x] Dockerfile + docker-compose for one-command local setup
 
 See [`frontend/README.md`](frontend/README.md) for how to run the frontend
 against this API.
-
-test

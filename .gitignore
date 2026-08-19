@@ -18,6 +18,7 @@ publish/
 ## Secrets
 appsettings.*.local.json
 *.env
+!.env.example
 
 ## OS
 .DS_Store

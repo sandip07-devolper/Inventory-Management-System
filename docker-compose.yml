@@ -1,0 +1,41 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: ioms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-devpassword}
+      MYSQL_DATABASE: inventory_order_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-devpassword}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: src/InventoryOrderSystem.API/Dockerfile
+    container_name: ioms-api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=inventory_order_db;User=root;Password=${MYSQL_ROOT_PASSWORD:-devpassword};"
+      Jwt__Key: ${JWT_KEY:-CHANGE_ME_LOCAL_DEV_ONLY_MIN_32_CHARACTERS}
+      Jwt__Issuer: InventoryOrderSystem
+      Jwt__Audience: InventoryOrderSystemClient
+      Jwt__ExpiryMinutes: "60"
+      Cors__AllowedOrigins__0: http://localhost:5500
+      Cors__AllowedOrigins__1: http://127.0.0.1:5500
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:

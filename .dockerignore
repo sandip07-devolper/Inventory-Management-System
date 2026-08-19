@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/logs/
+tests/
+frontend/
+.git/
+.github/
+*.md

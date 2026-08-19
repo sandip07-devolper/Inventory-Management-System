@@ -139,6 +139,16 @@ try
 
     var app = builder.Build();
 
+    // Applies any pending EF Core migrations on startup. Requires migrations to
+    // already exist in the Infrastructure project - see README for the one-time
+    // step to generate them (this sandbox never had .NET SDK access to do it).
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Log.Information("Database migrations applied");
+    }
+
     // Exception middleware is outermost so it can catch anything thrown further
     // in, including by UseSerilogRequestLogging's own pipeline.
     app.UseMiddleware<ExceptionHandlingMiddleware>();
