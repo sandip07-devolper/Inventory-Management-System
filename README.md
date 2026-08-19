@@ -1,5 +1,7 @@
 # Inventory & Order Management System
 
+[![CI](https://github.com/sandip07-devolper/Inventory-Management-System/actions/workflows/ci.yml/badge.svg)](https://github.com/sandip07-devolper/Inventory-Management-System/actions/workflows/ci.yml)
+
 A multi-tenant inventory and order management REST API built with ASP.NET Core, EF Core, and MySQL.
 
 ## Stack
