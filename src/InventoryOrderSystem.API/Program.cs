@@ -8,6 +8,7 @@ using InventoryOrderSystem.API.Services.PurchaseOrders;
 using InventoryOrderSystem.API.Services.Reports;
 using InventoryOrderSystem.API.Services.SalesOrders;
 using InventoryOrderSystem.API.Services.Suppliers;
+using InventoryOrderSystem.API.Services.Users;
 using InventoryOrderSystem.Domain.Entities;
 using InventoryOrderSystem.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -107,6 +108,7 @@ try
     builder.Services.AddScoped<ICustomerService, CustomerService>();
     builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
     builder.Services.AddScoped<IReportService, ReportService>();
+    builder.Services.AddScoped<IUserService, UserService>();
 
     // ---- API / Swagger ----
     builder.Services.AddControllers();
@@ -147,6 +149,16 @@ try
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Database.Migrate();
         Log.Information("Database migrations applied");
+
+        // Roles aren't tenant-scoped, so seeding them once here means neither
+        // AuthController.Register nor UserService need to check-and-create them
+        // on every call.
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+        foreach (var roleName in new[] { "Admin", "Staff" })
+        {
+            if (!await roleManager.RoleExistsAsync(roleName))
+                await roleManager.CreateAsync(new IdentityRole<int>(roleName));
+        }
     }
 
     // Exception middleware is outermost so it can catch anything thrown further

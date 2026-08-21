@@ -31,6 +31,17 @@ Shared-database, discriminator-column strategy. Every tenant-scoped entity imple
 
 This means feature code (controllers/services) never has to remember to filter by tenant.
 
+### Roles & authorization
+
+Two roles per tenant: `Admin` (created automatically for the user who registers
+the tenant) and `Staff`. Both are seeded once at application startup. Most
+endpoints only require `[Authorize]` (any authenticated user in the tenant),
+but `/api/users` is restricted to `Admin` via `[Authorize(Roles = "Admin")]` -
+the one place role membership actually gates access right now. An Admin can
+invite additional users into their tenant, assign either role, and
+deactivate/reactivate accounts (with a guard against deactivating your own
+account by mistake).
+
 ## Getting Started
 
 ### Prerequisites
@@ -122,6 +133,7 @@ as they would against MySQL - no mocking of the DbContext required.
       Suppliers, Purchase Orders, Customers, Sales Orders
 - [x] CI (GitHub Actions: build + test on every push)
 - [x] Dockerfile + docker-compose for one-command local setup
+- [x] Role-based authorization (Admin/Staff) and tenant user management
 
 See [`frontend/README.md`](frontend/README.md) for how to run the frontend
 against this API.

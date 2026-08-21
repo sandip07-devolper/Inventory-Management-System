@@ -19,20 +19,17 @@ public class AuthController : ControllerBase
 
     private readonly AppDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole<int>> _roleManager;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         AppDbContext dbContext,
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole<int>> roleManager,
         IJwtTokenService jwtTokenService,
         ILogger<AuthController> logger)
     {
         _dbContext = dbContext;
         _userManager = userManager;
-        _roleManager = roleManager;
         _jwtTokenService = jwtTokenService;
         _logger = logger;
     }
@@ -81,9 +78,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { errors = createResult.Errors.Select(e => e.Description) });
         }
 
-        if (!await _roleManager.RoleExistsAsync(AdminRole))
-            await _roleManager.CreateAsync(new IdentityRole<int>(AdminRole));
-
+        // Admin/Staff roles are seeded once at application startup (see Program.cs),
+        // so no need to check-and-create here.
         await _userManager.AddToRoleAsync(user, AdminRole);
 
         var roles = await _userManager.GetRolesAsync(user);
