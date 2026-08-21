@@ -112,5 +112,10 @@ const Api = {
   getCustomers: () => apiRequest("/customers"),
   createCustomer: (payload) => apiRequest("/customers", { method: "POST", body: payload }),
   updateCustomer: (id, payload) => apiRequest(`/customers/${id}`, { method: "PUT", body: payload }),
-  deleteCustomer: (id) => apiRequest(`/customers/${id}`, { method: "DELETE" })
+  deleteCustomer: (id) => apiRequest(`/customers/${id}`, { method: "DELETE" }),
+
+  getUsers: () => apiRequest("/users"),
+  createUser: (payload) => apiRequest("/users", { method: "POST", body: payload }),
+  updateUser: (id, payload) => apiRequest(`/users/${id}`, { method: "PUT", body: payload }),
+  deactivateUser: (id) => apiRequest(`/users/${id}`, { method: "DELETE" })
 };

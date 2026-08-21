@@ -5,19 +5,27 @@ const NAV_LINKS = [
   { href: "suppliers.html", label: "Suppliers", key: "suppliers" },
   { href: "purchase-orders.html", label: "Purchase Orders", key: "purchase-orders" },
   { href: "customers.html", label: "Customers", key: "customers" },
-  { href: "sales-orders.html", label: "Sales Orders", key: "sales-orders" }
+  { href: "sales-orders.html", label: "Sales Orders", key: "sales-orders" },
+  { href: "users.html", label: "Users", key: "users", requiresRole: "Admin" }
 ];
 
 function renderNavbar(activePage) {
   const container = document.getElementById("navbarContainer");
   if (!container) return;
 
-  const linkHtml = NAV_LINKS.map(
-    (link) => `
+  const user = AuthStorage.getUser();
+  const roles = user?.roles || [];
+
+  const visibleLinks = NAV_LINKS.filter((link) => !link.requiresRole || roles.includes(link.requiresRole));
+
+  const linkHtml = visibleLinks
+    .map(
+      (link) => `
       <a class="nav-link ${link.key === activePage ? "active fw-semibold" : ""}" href="${link.href}">
         ${link.label}
       </a>`
-  ).join("");
+    )
+    .join("");
 
   container.innerHTML = `
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -32,7 +40,6 @@ function renderNavbar(activePage) {
     </nav>
   `;
 
-  const user = AuthStorage.getUser();
   const greeting = document.getElementById("userGreeting");
   if (greeting && user) {
     greeting.textContent = `${user.fullName} · ${user.tenantName}`;

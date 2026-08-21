@@ -23,6 +23,11 @@ browser tab closes.
   of Receive. Fulfilling reduces stock and will fail (with the API's
   exact shortage message) if there isn't enough on hand - that response
   is surfaced in the view modal as-is
+- `users.html` - Admin-only staff management (the nav link itself is
+  hidden for non-Admins via `roles` on the stored session, and the page
+  also checks on load as defense-in-depth, since the API enforces this
+  regardless of what the frontend shows). Create sets a password; edit
+  changes name/role/active status but not email or password.
 
 ## Running it
 
